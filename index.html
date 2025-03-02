@@ -5,104 +5,441 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tide Predictions</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tide Predictions</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-
-    <!-- Leaflet.js CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #34a853;
+            --accent-color: #4285f4;
+            --background-color: #f8f9fa;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            background-color: var(--background-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            padding-bottom: 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 2rem 0;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 2.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        .card {
+            border-radius: 12px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            background-color: var(--card-bg);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            border: 1px solid #ddd;
+        }
+
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.25);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 6px rgba(26, 115, 232, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0d62d1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(26, 115, 232, 0.35);
+        }
+
+        .results-section {
+            margin-top: 2.5rem;
+        }
+
+        .results-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-dark {
+            background-color: var(--primary-color);
+        }
+
+        .map-container {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            margin-top: 2rem;
+        }
+
+        #map {
+            height: 450px;
+            width: 100%;
+        }
+
+        .tidepooling-result {
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .yes-result {
+            background-color: rgba(52, 168, 83, 0.15);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .no-result {
+            background-color: rgba(234, 67, 53, 0.15);
+            border: 2px solid #ea4335;
+        }
+
+        .tide-type-high {
+            color: #1a73e8;
+            font-weight: bold;
+        }
+
+        .tide-type-low {
+            color: #ea4335;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1.5rem 0;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .beach-info-card {
+            margin-top: 2rem;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .beach-info-header {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 1rem;
+        }
+
+        .beach-info-body {
+            padding: 1.5rem;
+        }
+
+        .next-best-day {
+            margin-top: 2rem;
+            background-color: rgba(26, 115, 232, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 2px solid var(--primary-color);
+        }
+    </style>
 </head>
 
-</head>
-<!-- Leaflet.js JS -->
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-
-
-<body class="bg-light">
-    <div class="container mt-4">
-        <h1 class="text-center text-primary">Tide Predictions</h1>
-
-        <!-- Form for selecting date and beach -->
-        <form method="POST" class="card p-3 shadow-sm">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label for="date" class="form-label">Select a Date:</label>
-                    <input type="date" id="date" name="date" class="form-control" value="{{ display_date }}">
-                </div>
-                <div class="col-md-6">
-                    <label for="beach" class="form-label">Select a Beach:</label>
-                    <select id="beach" name="beach" class="form-select">
-                        {% for beach in beaches %}
-                            <option value="{{ beach }}" {% if beach == selected_beach %}selected{% endif %}>
-                                {{ beach }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-            <button type="submit" class="btn btn-primary mt-3">Get Tides</button>
-        </form>
-
-        <h2 class="text-center mt-4">Results for {{ display_date }} at {{ selected_beach }}</h2>
-
-        {% if tides %}
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Type</th>
-                        <th>Time</th>
-                        <th>Height (ft)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for tide in tides %}
-                    <tr>
-                        <td>{{ tide.type }}</td>
-                        <td>{{ tide.time }}</td>
-                        <td>{{ tide.height }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p class="text-center text-danger">No tide data available.</p>
-        {% endif %}
-
-        <h2 class="text-center mt-4">Is This a Good Tidepooling Day?</h2>
-        <h3 class="text-center {% if meets_criteria %}text-success{% else %}text-danger{% endif %}">
-            {{ "Yes" if meets_criteria else "No" }}
-        </h3>
+<body>
+    <!-- Header Section -->
+    <div class="header">
+        <div class="container text-center">
+            <h1><i class="fas fa-water me-2"></i> Tide Predictions</h1>
+            <p>Find the perfect time for your next tidepooling adventure</p>
+        </div>
     </div>
 
+    <div class="container">
+        <!-- Form Section -->
+        <div class="card p-4 shadow-sm mb-4">
+            <form method="POST">
+                <h3 class="mb-4 text-center text-primary">Plan Your Visit</h3>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="date" class="form-label fw-bold"><i class="fas fa-calendar-alt me-2"></i>Select a Date:</label>
+                        <input type="date" id="date" name="date" class="form-control" value="{{ display_date }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="beach" class="form-label fw-bold"><i class="fas fa-umbrella-beach me-2"></i>Select a Beach:</label>
+                        <select id="beach" name="beach" class="form-select">
+                            {% for beach in beaches %}
+                                <option value="{{ beach }}" {% if beach == selected_beach %}selected{% endif %}>
+                                    {{ beach }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary px-4 py-2">
+                        <i class="fas fa-search me-2"></i>Get Tides
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section">
+            <h2 class="results-title">
+                <i class="fas fa-info-circle me-2"></i>Results for {{ display_date }} at {{ selected_beach }}
+            </h2>
+
+            {% if tides %}
+                <div class="card mb-4">
+                    <div class="card-body p-0">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th><i class="fas fa-wave-square me-2"></i>Type</th>
+                                    <th><i class="fas fa-clock me-2"></i>Time</th>
+                                    <th><i class="fas fa-ruler-vertical me-2"></i>Height (ft)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tide in tides %}
+                                <tr>
+                                    <td class="{% if 'High' in tide.type %}tide-type-high{% elif 'Low' in tide.type %}tide-type-low{% endif %}">
+                                        {% if 'High' in tide.type %}
+                                            <i class="fas fa-chevron-up me-2"></i>
+                                        {% elif 'Low' in tide.type %}
+                                            <i class="fas fa-chevron-down me-2"></i>
+                                        {% endif %}
+                                        {{ tide.type }}
+                                    </td>
+                                    <td>{{ tide.time }}</td>
+                                    <td>{{ tide.height }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>No tide data available for the selected date and location.
+                </div>
+            {% endif %}
+
+            <!-- Tidepooling Recommendation -->
+            <div class="tidepooling-result {% if meets_criteria %}yes-result{% else %}no-result{% endif %}">
+                <h3 class="mb-3">Is This a Good Tidepooling Day?</h3>
+                <h2 class="mb-2 {% if meets_criteria %}text-success{% else %}text-danger{% endif %}">
+                    {% if meets_criteria %}
+                        <i class="fas fa-check-circle me-2"></i>YES!
+                    {% else %}
+                        <i class="fas fa-times-circle me-2"></i>Not Ideal
+                    {% endif %}
+                </h2>
+                <p class="mb-0">
+                    {% if meets_criteria %}
+                    The tide conditions are perfect for exploring tidepools today!
+                    {% else %}
+                    Consider checking another day for better tidepooling conditions.
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Next Best Day Section -->
+            {% if not meets_criteria and next_best_date %}
+                <div class="next-best-day">
+                    <h3 class="text-center text-primary mb-3">
+                        <i class="fas fa-calendar-check me-2"></i>Next Recommended Day
+                    </h3>
+                    <p class="text-center mb-4">
+                        The next good day for tidepooling at {{ selected_beach }} is:
+                        <strong>{{ next_best_date[:4] }}-{{ next_best_date[4:6] }}-{{ next_best_date[6:] }}</strong>
+                    </p>
+
+                    {% if next_best_tides %}
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <table class="table table-striped table-hover mb-0">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th><i class="fas fa-wave-square me-2"></i>Type</th>
+                                            <th><i class="fas fa-clock me-2"></i>Time</th>
+                                            <th><i class="fas fa-ruler-vertical me-2"></i>Height (ft)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for tide in next_best_tides %}
+                                        <tr>
+                                            <td class="{% if 'High' in tide.type %}tide-type-high{% elif 'Low' in tide.type %}tide-type-low{% endif %}">
+                                                {% if 'High' in tide.type %}
+                                                    <i class="fas fa-chevron-up me-2"></i>
+                                                {% elif 'Low' in tide.type %}
+                                                    <i class="fas fa-chevron-down me-2"></i>
+                                                {% endif %}
+                                                {{ tide.type }}
+                                            </td>
+                                            <td>{{ tide.time }}</td>
+                                            <td>{{ tide.height }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="text-center mt-3">
+                        <form method="post">
+                            <input type="hidden" name="date" value="{{ next_best_date[:4] }}-{{ next_best_date[4:6] }}-{{ next_best_date[6:] }}">
+                            <input type="hidden" name="beach" value="{{ selected_beach }}">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-calendar me-2"></i>Select This Date
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Beach Information Card -->
+        <div class="beach-info-card card">
+            <div class="beach-info-header">
+                <h3 class="mb-0"><i class="fas fa-info-circle me-2"></i>Beach Information</h3>
+            </div>
+            <div class="beach-info-body">
+                <p>Learn more about the beaches in our database and find the perfect spot for your next tidepooling adventure. The map below shows popular tidepooling locations.</p>
+                <p><strong>Tidepooling Tips:</strong></p>
+                <ul>
+                    <li>Visit during low tide (ideally below 0 feet)</li>
+                    <li>Wear shoes with good grip</li>
+                    <li>Never turn your back on the ocean</li>
+                    <li>Touch marine life gently if at all</li>
+                    <li>Leave everything as you found it</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Map Section -->
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 Tide Predictions | Data sourced from NOAA</p>
+            <p>Remember to respect marine life and leave tidepools as you found them</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Initialize map when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            var map = L.map('map').setView([36.9778, -122.0308], 8);
 
-    <div id="map" style="height: 400px;"></div>
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
 
+            // Beach coordinates and information
+            var beaches = [
+                {
+                    name: "Fitzgerald Marine Reserve, CA",
+                    lat: 37.5244,
+                    lng: -122.5182,
+                    info: "One of the best tidepooling locations in Northern California with diverse marine life."
+                },
+                {
+                    name: "Pillar Point, CA",
+                    lat: 37.4959,
+                    lng: -122.4994,
+                    info: "Known for its abundant marine life and accessible tidepools."
+                },
+                {
+                    name: "Fort Ross, CA",
+                    lat: 38.5144,
+                    lng: -123.2455,
+                    info: "Historic site with beautiful tide pools along the Sonoma Coast."
+                }
+            ];
+
+            // Add all beach markers
+            beaches.forEach(function(beach) {
+                var popupContent = '<div class="beach-popup"><h5>' + beach.name + '</h5><p>' + beach.info + '</p>';
+
+                // Highlight the currently selected beach
+                if (beach.name === "{{ selected_beach }}") {
+                    popupContent += '<p class="mb-0"><strong>Currently Selected</strong></p>';
+                } else {
+                    // Create a form to select this beach
+                    popupContent += '<form method="post">';
+                    popupContent += '<input type="hidden" name="date" value="{{ display_date }}">';
+                    popupContent += '<input type="hidden" name="beach" value="' + beach.name + '">';
+                    popupContent += '<button type="submit" class="btn btn-sm btn-primary mt-2">Select This Beach</button>';
+                    popupContent += '</form>';
+                }
+
+                popupContent += '</div>';
+
+                L.marker([beach.lat, beach.lng])
+                    .addTo(map)
+                    .bindPopup(popupContent);
+            });
+
+            // Fit map to show all markers
+            var bounds = L.latLngBounds(beaches.map(beach => [beach.lat, beach.lng]));
+            map.fitBounds(bounds);
+        });
+    </script>
 </body>
-
 </html>
-<script>
-    var map = L.map('map').setView([36.9778, -122.0308], 13);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    // Add markers for different beaches
-    L.marker([37.495850, -122.499360]).addTo(map)
-        .bindPopup('<b>Pillar Point</b><br><a href="https://limpets.org/monitoring-site/pillar-point/" target="_blank">Click here for more info!</a>')
-        .openPopup();
-
-    L.marker([37.524430, -122.518160]).addTo(map)
-        .bindPopup('<b>Fitzgerald Marine Reserve</b><br><a href="https://limpets.org/monitoring-site/fitzgerald-marine-reserve/" target="_blank">Click here for more info!</a>')
-        .openPopup();
-
-    L.marker([32.8321, -117.2710]).addTo(map)  // La Jolla Shores, San Diego
-        .bindPopup('<b>La Jolla Shores</b><br>Popular for tidepooling!');
-</script>
 
 
