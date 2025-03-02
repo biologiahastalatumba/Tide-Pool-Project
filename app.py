@@ -13,7 +13,6 @@ BEACHES = {
 
 def get_tide_data(date, station_id, low_tide_threshold):
     base_url = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter"
-
     params = {
         "product": "predictions",
         "datum": "MLLW",
@@ -47,13 +46,23 @@ def get_tide_data(date, station_id, low_tide_threshold):
 
     return tides, meets_criteria
 
+def find_next_good_tide(start_date, station_id, low_tide_threshold):
+    for i in range(1, 22):  # Check up to 21 days ahead
+        next_date = (datetime.datetime.strptime(start_date, "%Y%m%d") + datetime.timedelta(days=i)).strftime("%Y%m%d")
+        tides, meets_criteria = get_tide_data(next_date, station_id, low_tide_threshold)
+        if meets_criteria:
+            return next_date, tides
+    return None, None
+
 @app.route("/", methods=["GET", "POST"])
 def home():
     selected_date = datetime.datetime.today().strftime("%Y%m%d")
     display_date = datetime.datetime.today().strftime("%Y-%m-%d")
     selected_beach = "Fitzgerald Marine Reserve, CA"
     beach_data = BEACHES[selected_beach]
+
     tides, meets_criteria = get_tide_data(selected_date, beach_data["station_id"], beach_data["low_tide_threshold"])
+    next_best_date, next_best_tides = find_next_good_tide(selected_date, beach_data["station_id"], beach_data["low_tide_threshold"])
 
     if request.method == "POST":
         user_date = request.form.get("date")
@@ -68,10 +77,14 @@ def home():
             beach_data = BEACHES[selected_beach]
 
         tides, meets_criteria = get_tide_data(selected_date, beach_data["station_id"], beach_data["low_tide_threshold"])
+        next_best_date, next_best_tides = find_next_good_tide(selected_date, beach_data["station_id"], beach_data["low_tide_threshold"])
 
     return render_template("index.html", tides=tides, meets_criteria=meets_criteria,
                            display_date=display_date, selected_beach=selected_beach,
-                           beaches=BEACHES.keys())
+                           beaches=BEACHES.keys(), next_best_date=next_best_date,
+                           next_best_tides=next_best_tides)
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
