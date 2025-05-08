@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tidepooling Reservation Survey</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a5276;
+            text-align: center;
+        }
+        .section-header {
+            background-color: #2980b9;
+            color: white;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .required:after {
+            content: " *";
+            color: red;
+        }
+        button[type="submit"] {
+            background-color: #2980b9;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        button[type="submit"]:hover {
+            background-color: #1a5276;
+        }
+        .container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tidepooling Reservation Survey</h1>
+
+        <form action="/submit_survey" method="POST">
+            <h2 class="section-header">Personal Information</h2>
+
+            <div class="form-group">
+                <label for="first_name" class="required">First Name</label>
+                <input type="text" id="first_name" name="first_name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="last_name" class="required">Last Name</label>
+                <input type="text" id="last_name" name="last_name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="required">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone" class="required">Phone Number</label>
+                <input type="tel" id="phone" name="phone" required>
+            </div>
+
+            <h2 class="section-header">School Information</h2>
+
+            <div class="form-group">
+                <label for="school_name" class="required">School/Organization</label>
+                <input type="text" id="school_name" name="school_name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="school_county" class="required">School County</label>
+                <input type="text" id="school_county" name="school_county" required>
+            </div>
+
+            <div class="form-group">
+                <label for="school_district" class="required">School District</label>
+                <input type="text" id="school_district" name="school_district" required>
+            </div>
+
+            <div class="form-group">
+                <label for="title_one">Title One School?</label>
+                <select id="title_one" name="title_one">
+                    <option value="">Please select</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="lunch_percent" class="required">Percent Free/Reduced Lunch</label>
+                <input type="number" id="lunch_percent" name="lunch_percent" min="0" max="100" required>
+            </div>
+
+            <h2 class="section-header">Class Information</h2>
+
+            <div class="form-group">
+                <label for="grade_level" class="required">Grade Level</label>
+                <select id="grade_level" name="grade_level" required>
+                    <option value="">Please select</option>
+                    <option value="K-5">K-5</option>
+                    <option value="6-8">6-8</option>
+                    <option value="9-12">9-12</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="class_type" class="required">Class Type (e.g., Science, Biology, Environmental Studies)</label>
+                <input type="text" id="class_type" name="class_type" required>
+            </div>
+
+            <div class="form-group">
+                <label for="total_classes" class="required">Total Number of Classes</label>
+                <input type="number" id="total_classes" name="total_classes" min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="students_per_class" class="required">Students Per Class</label>
+                <input type="number" id="students_per_class" name="students_per_class" min="1" required>
+            </div>
+
+            <h2 class="section-header">Program Information</h2>
+
+            <div class="form-group">
+                <label for="monitoring_program" class="required">Which Monitoring Program Are You Interested In?</label>
+                <select id="monitoring_program" name="monitoring_program" required>
+                    <option value="">Please select</option>
+                    <option value="Tidepool Monitoring">Tidepool Monitoring</option>
+                    <option value="Marine Life Monitoring">Marine Life Monitoring</option>
+                    <option value="Coastal Health Monitoring">Coastal Health Monitoring</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="training_date" class="required">Preferred In-Class Training Date/Time</label>
+                <input type="datetime-local" id="training_date" name="training_date" required>
+            </div>
+
+            <div class="form-group">
+                <label for="accommodations">Any Accommodations Needed?</label>
+                <textarea id="accommodations" name="accommodations" rows="3" placeholder="Please describe any special requirements or accommodations"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="financial_assistance" class="required">Are You Applying for Financial Assistance?</label>
+                <select id="financial_assistance" name="financial_assistance" required>
+                    <option value="">Please select</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+
+            <button type="submit">Submit Registration</button>
+        </form>
+
+        <p>Thank you for your interest in our tidepooling education program! All information provided will be kept confidential and used only for program registration purposes.</p>
+    </div>
+</body>
+</html>

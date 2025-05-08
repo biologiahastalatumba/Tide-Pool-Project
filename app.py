@@ -6,10 +6,11 @@ app = Flask(__name__)
 
 # Map beach names to NOAA tide station IDs and custom low tide thresholds
 BEACHES = {
-    "Fitzgerald Marine Reserve, CA": {"station_id": "9414131", "low_tide_threshold": 0.0},
-    "Pillar Point, CA": {"station_id": "9414131", "low_tide_threshold": -0.1},
+    "Fitzgerald Marine Reserve, CA": {"station_id": "9414131", "low_tide_threshold": -0.1},
+    "Pillar Point, CA": {"station_id": "9414131", "low_tide_threshold": -0.0},
     "Fort Ross, CA": {"station_id": "9416024", "low_tide_threshold": -0.3}
 }
+
 
 def get_tide_data(date, station_id, low_tide_threshold):
     base_url = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter"
@@ -47,6 +48,19 @@ def get_tide_data(date, station_id, low_tide_threshold):
 
     return tides, meets_criteria
 
+
+def find_next_best_tide(start_date, station_id, low_tide_threshold, max_days=21):
+    for day_offset in range(1, max_days + 1):
+        next_date = (datetime.datetime.strptime(start_date, "%Y%m%d") + datetime.timedelta(days=day_offset)).strftime(
+            "%Y%m%d")
+        tides, meets_criteria = get_tide_data(next_date, station_id, low_tide_threshold)
+
+        if meets_criteria:
+            return next_date, tides  # Found a good tide, return it immediately
+
+    return None, None  # No good tide found in 21 days
+
+
 @app.route("/", methods=["GET", "POST"])
 def home():
     selected_date = datetime.datetime.today().strftime("%Y%m%d")
@@ -69,9 +83,16 @@ def home():
 
         tides, meets_criteria = get_tide_data(selected_date, beach_data["station_id"], beach_data["low_tide_threshold"])
 
+    # Find the next best tide within 21 days
+    next_best_date, next_best_tides = find_next_best_tide(selected_date, beach_data["station_id"],
+                                                          beach_data["low_tide_threshold"], max_days=21)
+
     return render_template("index.html", tides=tides, meets_criteria=meets_criteria,
                            display_date=display_date, selected_beach=selected_beach,
-                           beaches=BEACHES.keys())
+                           beaches=BEACHES.keys(), next_best_date=next_best_date,
+                           next_best_tides=next_best_tides)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
+
